@@ -21,9 +21,9 @@ build: main.json
 # Build files
 # -----------------------------------------------------------------------------
 
-main.json: main.bicep
-	bicep build main.bicep \
-		--outfile main.json
+main.json: bicep/main.bicep
+	bicep build bicep/main.bicep \
+		--outfile arm-json/main.json
 
 # -----------------------------------------------------------------------------
 # Clean up targets
@@ -31,7 +31,7 @@ main.json: main.bicep
 
 .PHONY: clean-main
 clean-main:
-	rm main.json
+	rm arm-json/main.json
 
 .PHONY: clean
 clean: clean-main
