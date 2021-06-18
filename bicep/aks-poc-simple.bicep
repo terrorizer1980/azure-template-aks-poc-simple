@@ -20,7 +20,7 @@ param securityResponsibility string
 param AcceptEula string
 
 @description('Required if inserting more than 100K records.  Senzing license as base64 encoded string')
-param SenzingLicenseAsBase64 string = ' '
+param SenzingLicenseAsBase64 string = ''
 
 
 
