@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.63.48766",
-      "templateHash": "16184901169211056924"
+      "templateHash": "13856585331800795145"
     }
   },
   "parameters": {
@@ -29,7 +29,7 @@
     },
     "SenzingLicenseAsBase64": {
       "type": "string",
-      "defaultValue": " ",
+      "defaultValue": "",
       "metadata": {
         "description": "Required if inserting more than 100K records.  Senzing license as base64 encoded string"
       }
