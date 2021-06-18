@@ -15,15 +15,15 @@ default: help
 # -----------------------------------------------------------------------------
 
 .PHONY: build
-build: main.json
+build: aks-poc-simple.json
 
 # -----------------------------------------------------------------------------
 # Build files
 # -----------------------------------------------------------------------------
 
-main.json: bicep/main.bicep
-	bicep build bicep/main.bicep \
-		--outfile arm-json/main.json
+aks-poc-simple.json:
+	bicep build bicep/aks-poc-simple.bicep \
+		--outfile arm-json/aks-poc-simple.json
 
 # -----------------------------------------------------------------------------
 # Clean up targets
@@ -31,7 +31,7 @@ main.json: bicep/main.bicep
 
 .PHONY: clean-main
 clean-main:
-	rm arm-json/main.json
+	rm arm-json/aks-poc-simple.json
 
 .PHONY: clean
 clean: clean-main
