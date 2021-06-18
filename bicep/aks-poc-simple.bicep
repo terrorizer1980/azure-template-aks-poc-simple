@@ -2,9 +2,12 @@
 ** Azure bicep template for Senzing axure-template-aks-poc-simple
 */
 
+// targetScope = 'subscription'
 
 /*
-**  Parameters
+** ----------------------------------------------------------------------------
+** Parameters
+** ----------------------------------------------------------------------------
 */
 
 @allowed([
@@ -22,10 +25,18 @@ param AcceptEula string
 @description('Required if inserting more than 100K records.  Senzing license as base64 encoded string')
 param SenzingLicenseAsBase64 string = ''
 
-
-
 /*
-** Outputs
+** ----------------------------------------------------------------------------
+** Resources
+** ----------------------------------------------------------------------------
 */
 
+/*
+** ----------------------------------------------------------------------------
+** Outputs
+** ----------------------------------------------------------------------------
+*/
+
+output senzingResourceGroupId string = resourceGroup().id
+output senzingTemplateName string = 'aks-poc-simple'
 output senzingTemplateVersion string = '0.1.0'

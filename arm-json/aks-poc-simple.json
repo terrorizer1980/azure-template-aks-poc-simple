@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.63.48766",
-      "templateHash": "13856585331800795145"
+      "templateHash": "17737938140114387075"
     }
   },
   "parameters": {
@@ -38,6 +38,14 @@
   "functions": [],
   "resources": [],
   "outputs": {
+    "senzingResourceGroupId": {
+      "type": "string",
+      "value": "[resourceGroup().id]"
+    },
+    "senzingTemplateName": {
+      "type": "string",
+      "value": "aks-poc-simple"
+    },
     "senzingTemplateVersion": {
       "type": "string",
       "value": "0.1.0"
