@@ -37,6 +37,6 @@ param SenzingLicenseAsBase64 string = ''
 ** ----------------------------------------------------------------------------
 */
 
-output senzingResourceGroupId string = resourceGroup().id
+output resourceGroupId string = resourceGroup().id
 output senzingTemplateName string = 'aks-poc-simple'
 output senzingTemplateVersion string = '0.1.0'
