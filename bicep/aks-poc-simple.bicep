@@ -25,11 +25,39 @@ param AcceptEula string
 @description('Required if inserting more than 100K records.  Senzing license as base64 encoded string')
 param SenzingLicenseAsBase64 string = ''
 
+@description('Resource group to deploy into.')
+param location string = resourceGroup().location
+
+@secure()
+@description('The administrator login username for the SQL server.')
+param sqlServerAdministratorLogin string
+
+@secure()
+@description('The administrator login password for the SQL server.')
+param sqlServerAdministratorLoginPassword string
+
+/*
+** ----------------------------------------------------------------------------
+** Variables
+** ----------------------------------------------------------------------------
+*/
+
+
 /*
 ** ----------------------------------------------------------------------------
 ** Resources
 ** ----------------------------------------------------------------------------
 */
+
+
+module database 'modules/database.bicep' = {
+  name: 'database'
+  params: {
+    location: location
+    sqlServerAdministratorLogin: sqlServerAdministratorLogin
+    sqlServerAdministratorLoginPassword: sqlServerAdministratorLoginPassword
+  }
+}
 
 /*
 ** ----------------------------------------------------------------------------
