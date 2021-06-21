@@ -10,6 +10,8 @@
 ** ----------------------------------------------------------------------------
 */
 
+// -- Senzing -----------------------------------------------------------------
+
 @allowed([
   'I AGREE'
 ])
@@ -20,20 +22,30 @@ param securityResponsibility string
   'I_ACCEPT_THE_SENZING_EULA'
 ])
 @description('Required: If you accept the Senzing End User License Agreement at https://senzing.com/end-user-license-agreement, enter "I_ACCEPT_THE_SENZING_EULA"')
-param AcceptEula string
+param acceptEula string
 
 @description('Required if inserting more than 100K records.  Senzing license as base64 encoded string')
-param SenzingLicenseAsBase64 string = ''
+param senzingLicenseAsBase64 string = ''
+
+// -- Environment -------------------------------------------------------------
 
 @description('Resource group to deploy into.')
 param location string = resourceGroup().location
 
-@secure()
+@description('The name of the environment. This must be Development or Production.')
+@allowed([
+  'Development'
+  'Production'
+])
+param environmentName string = 'Development'
+
+// -- Database ----------------------------------------------------------------
+
 @description('The administrator login username for the SQL server.')
 param sqlServerAdministratorLogin string
 
-@secure()
 @description('The administrator login password for the SQL server.')
+@secure()
 param sqlServerAdministratorLoginPassword string
 
 /*
@@ -42,20 +54,28 @@ param sqlServerAdministratorLoginPassword string
 ** ----------------------------------------------------------------------------
 */
 
+var auditStorageAccountName = '${take('senzing-audit-${location}-${uniqueString(resourceGroup().id)}', 24)}'
+var auditStorageAccountSkuName = 'Standard_LRS'
+var sqlDatabaseName = 'G2'
+var sqlServerName = 'senzing-${location}-${uniqueString(resourceGroup().id)}'
 
 /*
 ** ----------------------------------------------------------------------------
-** Resources
+** Modules
 ** ----------------------------------------------------------------------------
 */
-
 
 module database 'modules/database.bicep' = {
   name: 'database'
   params: {
+    auditStorageAccountName: auditStorageAccountName
+    auditStorageAccountSkuName: auditStorageAccountSkuName
+    environmentName: environmentName
     location: location
+    sqlDatabaseName: sqlDatabaseName
     sqlServerAdministratorLogin: sqlServerAdministratorLogin
     sqlServerAdministratorLoginPassword: sqlServerAdministratorLoginPassword
+    sqlServerName: sqlServerName
   }
 }
 
@@ -65,6 +85,7 @@ module database 'modules/database.bicep' = {
 ** ----------------------------------------------------------------------------
 */
 
+output location string = location
 output resourceGroupId string = resourceGroup().id
 output senzingTemplateName string = 'aks-poc-simple'
 output senzingTemplateVersion string = '0.1.0'

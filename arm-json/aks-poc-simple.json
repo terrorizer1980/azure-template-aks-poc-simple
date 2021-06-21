@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.63.48766",
-      "templateHash": "15167858800281991298"
+      "templateHash": "10547590499014755759"
     }
   },
   "parameters": {
@@ -18,7 +18,7 @@
         "I AGREE"
       ]
     },
-    "AcceptEula": {
+    "acceptEula": {
       "type": "string",
       "metadata": {
         "description": "Required: If you accept the Senzing End User License Agreement at https://senzing.com/end-user-license-agreement, enter \"I_ACCEPT_THE_SENZING_EULA\""
@@ -27,7 +27,7 @@
         "I_ACCEPT_THE_SENZING_EULA"
       ]
     },
-    "SenzingLicenseAsBase64": {
+    "senzingLicenseAsBase64": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
@@ -41,6 +41,17 @@
         "description": "Resource group to deploy into."
       }
     },
+    "environmentName": {
+      "type": "string",
+      "defaultValue": "Development",
+      "allowedValues": [
+        "Development",
+        "Production"
+      ],
+      "metadata": {
+        "description": "The name of the environment. This must be Development or Production."
+      }
+    },
     "sqlServerAdministratorLogin": {
       "type": "secureString",
       "metadata": {
@@ -48,13 +59,19 @@
       }
     },
     "sqlServerAdministratorLoginPassword": {
-      "type": "secureString",
+      "type": "string",
       "metadata": {
         "description": "The administrator login password for the SQL server."
       }
     }
   },
   "functions": [],
+  "variables": {
+    "auditStorageAccountName": "[take(format('senzing-audit-{0}-{1}', parameters('location'), uniqueString(resourceGroup().id)), 24)]",
+    "auditStorageAccountSkuName": "Standard_LRS",
+    "sqlDatabaseName": "G2",
+    "sqlServerName": "[format('senzing-{0}-{1}', parameters('location'), uniqueString(resourceGroup().id))]"
+  },
   "resources": [
     {
       "type": "Microsoft.Resources/deployments",
@@ -66,14 +83,29 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "auditStorageAccountName": {
+            "value": "[variables('auditStorageAccountName')]"
+          },
+          "auditStorageAccountSkuName": {
+            "value": "[variables('auditStorageAccountSkuName')]"
+          },
+          "environmentName": {
+            "value": "[parameters('environmentName')]"
+          },
           "location": {
             "value": "[parameters('location')]"
+          },
+          "sqlDatabaseName": {
+            "value": "[variables('sqlDatabaseName')]"
           },
           "sqlServerAdministratorLogin": {
             "value": "[parameters('sqlServerAdministratorLogin')]"
           },
           "sqlServerAdministratorLoginPassword": {
             "value": "[parameters('sqlServerAdministratorLoginPassword')]"
+          },
+          "sqlServerName": {
+            "value": "[variables('sqlServerName')]"
           }
         },
         "template": {
@@ -83,14 +115,53 @@
             "_generator": {
               "name": "bicep",
               "version": "0.4.63.48766",
-              "templateHash": "7950124901588982411"
+              "templateHash": "18178054181620285313"
             }
           },
           "parameters": {
+            "auditStorageAccountName": {
+              "type": "string",
+              "metadata": {
+                "description": "Account name for storage."
+              }
+            },
+            "auditStorageAccountSkuName": {
+              "type": "string",
+              "defaultValue": "Standard_LRS",
+              "metadata": {
+                "description": "The name of the audit storage account SKU."
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the environment. This must be Development or Production."
+              },
+              "allowedValues": [
+                "Development",
+                "Production"
+              ]
+            },
             "location": {
               "type": "string",
               "metadata": {
                 "description": "The Azure region into which the resources should be deployed."
+              }
+            },
+            "sqlDatabaseName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the database."
+              }
+            },
+            "sqlDatabaseSku": {
+              "type": "object",
+              "defaultValue": {
+                "name": "Standard",
+                "tier": "Standard"
+              },
+              "metadata": {
+                "description": "The name and tier of the SQL database SKU."
               }
             },
             "sqlServerAdministratorLogin": {
@@ -105,47 +176,22 @@
                 "description": "The administrator login password for the SQL server."
               }
             },
-            "sqlDatabaseSku": {
-              "type": "object",
-              "defaultValue": {
-                "name": "Standard",
-                "tier": "Standard"
-              },
-              "metadata": {
-                "description": "The name and tier of the SQL database SKU."
-              }
-            },
-            "environmentName": {
+            "sqlServerName": {
               "type": "string",
-              "defaultValue": "Development",
-              "allowedValues": [
-                "Development",
-                "Production"
-              ],
               "metadata": {
-                "description": "The name of the environment. This must be Development or Production."
-              }
-            },
-            "auditStorageAccountSkuName": {
-              "type": "string",
-              "defaultValue": "Standard_LRS",
-              "metadata": {
-                "description": "The name of the audit storage account SKU."
+                "description": "Server name."
               }
             }
           },
           "functions": [],
           "variables": {
-            "sqlServerName": "[format('teddy{0}{1}', parameters('location'), uniqueString(resourceGroup().id))]",
-            "sqlDatabaseName": "TeddyBear",
-            "auditingEnabled": "[equals(parameters('environmentName'), 'Production')]",
-            "auditStorageAccountName": "[take(format('bearaudit{0}{1}', parameters('location'), uniqueString(resourceGroup().id)), 24)]"
+            "auditingEnabled": "[equals(parameters('environmentName'), 'Production')]"
           },
           "resources": [
             {
               "type": "Microsoft.Sql/servers",
               "apiVersion": "2020-11-01-preview",
-              "name": "[variables('sqlServerName')]",
+              "name": "[parameters('sqlServerName')]",
               "location": "[parameters('location')]",
               "properties": {
                 "administratorLogin": "[parameters('sqlServerAdministratorLogin')]",
@@ -155,52 +201,48 @@
             {
               "type": "Microsoft.Sql/servers/databases",
               "apiVersion": "2020-11-01-preview",
-              "name": "[format('{0}/{1}', variables('sqlServerName'), variables('sqlDatabaseName'))]",
+              "name": "[format('{0}/{1}', parameters('sqlServerName'), parameters('sqlDatabaseName'))]",
               "location": "[parameters('location')]",
               "sku": "[parameters('sqlDatabaseSku')]",
               "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+                "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
               ]
             },
             {
               "condition": "[variables('auditingEnabled')]",
               "type": "Microsoft.Storage/storageAccounts",
               "apiVersion": "2021-02-01",
-              "name": "[variables('auditStorageAccountName')]",
+              "name": "[parameters('auditStorageAccountName')]",
+              "kind": "StorageV2",
               "location": "[parameters('location')]",
               "sku": {
                 "name": "[parameters('auditStorageAccountSkuName')]"
-              },
-              "kind": "StorageV2"
+              }
             },
             {
               "condition": "[variables('auditingEnabled')]",
               "type": "Microsoft.Sql/servers/auditingSettings",
               "apiVersion": "2020-11-01-preview",
-              "name": "[format('{0}/{1}', variables('sqlServerName'), 'default')]",
+              "name": "[format('{0}/{1}', parameters('sqlServerName'), 'default')]",
               "properties": {
                 "state": "Enabled",
-                "storageEndpoint": "[if(equals(parameters('environmentName'), 'Production'), reference(resourceId('Microsoft.Storage/storageAccounts', variables('auditStorageAccountName'))).primaryEndpoints.blob, '')]",
-                "storageAccountAccessKey": "[if(equals(parameters('environmentName'), 'Production'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('auditStorageAccountName')), '2021-02-01').keys[0].value, '')]"
+                "storageAccountAccessKey": "[if(equals(parameters('environmentName'), 'Production'), listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('auditStorageAccountName')), '2021-02-01').keys[0].value, '')]",
+                "storageEndpoint": "[if(equals(parameters('environmentName'), 'Production'), reference(resourceId('Microsoft.Storage/storageAccounts', parameters('auditStorageAccountName'))).primaryEndpoints.blob, '')]"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('auditStorageAccountName'))]",
-                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('auditStorageAccountName'))]",
+                "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
               ]
             }
           ],
           "outputs": {
-            "serverName": {
-              "type": "string",
-              "value": "[variables('sqlServerName')]"
-            },
-            "location": {
-              "type": "string",
-              "value": "[parameters('location')]"
-            },
             "serverFullyQualifiedDomainName": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Sql/servers', variables('sqlServerName'))).fullyQualifiedDomainName]"
+              "value": "[reference(resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))).fullyQualifiedDomainName]"
+            },
+            "serverName": {
+              "type": "string",
+              "value": "[parameters('sqlServerName')]"
             }
           }
         }
@@ -208,6 +250,10 @@
     }
   ],
   "outputs": {
+    "location": {
+      "type": "string",
+      "value": "[parameters('location')]"
+    },
     "resourceGroupId": {
       "type": "string",
       "value": "[resourceGroup().id]"

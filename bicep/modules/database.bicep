@@ -1,13 +1,27 @@
+/*
+** ----------------------------------------------------------------------------
+** Parameters
+** ----------------------------------------------------------------------------
+*/
+
+@description('Account name for storage.')
+param auditStorageAccountName string
+
+@description('The name of the audit storage account SKU.')
+param auditStorageAccountSkuName string = 'Standard_LRS'
+
+@allowed([
+  'Development'
+  'Production'
+])
+@description('The name of the environment. This must be Development or Production.')
+param environmentName string
+
 @description('The Azure region into which the resources should be deployed.')
 param location string
 
-@secure()
-@description('The administrator login username for the SQL server.')
-param sqlServerAdministratorLogin string
-
-@secure()
-@description('The administrator login password for the SQL server.')
-param sqlServerAdministratorLoginPassword string
+@description('The name of the database.')
+param sqlDatabaseName string
 
 @description('The name and tier of the SQL database SKU.')
 param sqlDatabaseSku object = {
@@ -15,24 +29,34 @@ param sqlDatabaseSku object = {
   tier: 'Standard'
 }
 
-@description('The name of the environment. This must be Development or Production.')
-@allowed([
-  'Development'
-  'Production'
-])
-param environmentName string = 'Development'
+@description('The administrator login username for the SQL server.')
+@secure()
+param sqlServerAdministratorLogin string
 
-@description('The name of the audit storage account SKU.')
-param auditStorageAccountSkuName string = 'Standard_LRS'
+@description('The administrator login password for the SQL server.')
+@secure()
+param sqlServerAdministratorLoginPassword string
 
-var sqlServerName = 'teddy${location}${uniqueString(resourceGroup().id)}'
-var sqlDatabaseName = 'TeddyBear'
+@description('Server name.')
+param sqlServerName string
+
+/*
+** ----------------------------------------------------------------------------
+** Variables
+** ----------------------------------------------------------------------------
+*/
+
 var auditingEnabled = environmentName == 'Production'
-var auditStorageAccountName = '${take('bearaudit${location}${uniqueString(resourceGroup().id)}', 24)}'
+
+/*
+** ----------------------------------------------------------------------------
+** Resources
+** ----------------------------------------------------------------------------
+*/
 
 resource sqlServer 'Microsoft.Sql/servers@2020-11-01-preview' = {
-  name: sqlServerName
   location: location
+  name: sqlServerName
   properties: {
     administratorLogin: sqlServerAdministratorLogin
     administratorLoginPassword: sqlServerAdministratorLoginPassword
@@ -40,31 +64,36 @@ resource sqlServer 'Microsoft.Sql/servers@2020-11-01-preview' = {
 }
 
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2020-11-01-preview' = {
-  parent: sqlServer
-  name: sqlDatabaseName
   location: location
+  name: sqlDatabaseName
+  parent: sqlServer
   sku: sqlDatabaseSku
 }
 
 resource auditStorageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = if (auditingEnabled) {
-  name: auditStorageAccountName
+  kind: 'StorageV2'
   location: location
+  name: auditStorageAccountName
   sku: {
     name: auditStorageAccountSkuName
   }
-  kind: 'StorageV2'
 }
 
 resource sqlServerAudit 'Microsoft.Sql/servers/auditingSettings@2020-11-01-preview' = if (auditingEnabled) {
-  parent: sqlServer
   name: 'default'
+  parent: sqlServer
   properties: {
     state: 'Enabled'
-    storageEndpoint: environmentName == 'Production' ? auditStorageAccount.properties.primaryEndpoints.blob : ''
     storageAccountAccessKey: environmentName == 'Production' ? listKeys(auditStorageAccount.id, auditStorageAccount.apiVersion).keys[0].value : ''
+    storageEndpoint: environmentName == 'Production' ? auditStorageAccount.properties.primaryEndpoints.blob : ''
   }
 }
 
-output serverName string = sqlServer.name
-output location string = location
+/*
+** ----------------------------------------------------------------------------
+** Outputs
+** ----------------------------------------------------------------------------
+*/
+
 output serverFullyQualifiedDomainName string = sqlServer.properties.fullyQualifiedDomainName
+output serverName string = sqlServer.name
