@@ -54,6 +54,7 @@ var auditingEnabled = environmentName == 'Production'
 ** ----------------------------------------------------------------------------
 */
 
+// https://docs.microsoft.com/en-us/azure/templates/microsoft.sql/2020-11-01-preview/servers?tabs=bicep
 resource sqlServer 'Microsoft.Sql/servers@2020-11-01-preview' = {
   location: location
   name: sqlServerName
@@ -63,6 +64,7 @@ resource sqlServer 'Microsoft.Sql/servers@2020-11-01-preview' = {
   }
 }
 
+// https://docs.microsoft.com/en-us/azure/templates/microsoft.sql/2020-11-01-preview/servers/databases?tabs=bicep
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2020-11-01-preview' = {
   location: location
   name: sqlDatabaseName
@@ -70,6 +72,7 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2020-11-01-preview' = {
   sku: sqlDatabaseSku
 }
 
+// https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/2021-02-01/storageaccounts?tabs=bicep
 resource auditStorageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = if (auditingEnabled) {
   kind: 'StorageV2'
   location: location
@@ -79,6 +82,7 @@ resource auditStorageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = if
   }
 }
 
+// https://docs.microsoft.com/en-us/azure/templates/microsoft.sql/2020-11-01-preview/servers/auditingsettings?tabs=bicep
 resource sqlServerAudit 'Microsoft.Sql/servers/auditingSettings@2020-11-01-preview' = if (auditingEnabled) {
   name: 'default'
   parent: sqlServer

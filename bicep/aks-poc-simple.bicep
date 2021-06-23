@@ -79,6 +79,16 @@ module database 'modules/database.bicep' = {
   }
 }
 
+
+module database 'modules/queue.bicep' = {
+  name: 'queue'
+  params: {
+    environmentName: environmentName
+    location: location
+  }
+}
+
+
 /*
 ** ----------------------------------------------------------------------------
 ** Outputs
